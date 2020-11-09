@@ -124,7 +124,7 @@ namespace FileSystem{
             size.write(fileStream);
         }
 
-        private void writeFolder(Img.File folder, Stream fileStream){
+        private void writeFolder(Img.Folder folder, Stream fileStream){
             Byte name = new Byte(0x0, folder.getName()); // File name + ext
             Byte attr = new Byte(0xB); // File attributes
             Byte cluster = new Byte(0x1A); // First cluster
@@ -145,6 +145,14 @@ namespace FileSystem{
 
             foreach (Img.File item in files){
                 writeFile(item, file);
+            }
+
+            file.Seek(offsetToClusterSection + 32, SeekOrigin.Begin);
+
+            List<Img.Folder> folder = img.getRoot().getFolders();
+
+            foreach (Img.Folder item in folder){
+                writeFolder(item, file);
             }
         }
     }

@@ -31,16 +31,16 @@ namespace FileSystem{
 
             int id;
 
-            public File(string name_, List<int> clustersId, int size){
-                Byte name = new Byte(0x0, name_);
-                Byte attr = new Byte(0xB); 
-                Byte createDate = new Byte(0x0 + 16, new byte[]{0x5, 0x5});
-                Byte accessDate = new Byte(0x0 + 18, new byte[]{0x4, 0x4});
-                Byte firstCluster = new Byte(0x0 + 20, new byte[]{0x3, 0x3});
-                Byte writeTime = new Byte(0x0 + 22, new byte[]{0x2, 0x2});
-                Byte writeDate = new Byte(0x0 + 24, new byte[]{0x1, 0x2});
-                Byte cluster = new Byte(0x1A, BitConverter.GetBytes(clustersId[0]));
-                Byte size = new Byte(0x1C, BitConverter.GetBytes(file.getSize())); 
+            public File(string name_, List<int> clustersId, int size_){
+                name = new Byte(0x0, name_);
+                attr = new Byte(0xB); 
+                createDate = new Byte(0x0 + 16, new byte[]{0x5, 0x5});
+                accessDate = new Byte(0x0 + 18, new byte[]{0x4, 0x4});
+                firstCluster = new Byte(0x0 + 20, new byte[]{0x3, 0x3});
+                writeTime = new Byte(0x0 + 22, new byte[]{0x2, 0x2});
+                writeDate = new Byte(0x0 + 24, new byte[]{0x1, 0x2});
+                cluster = new Byte(0x1A, BitConverter.GetBytes(clustersId[0]));
+                size = new Byte(0x1C, BitConverter.GetBytes(size_)); 
             }
 
             public void Write(Stream fstream){

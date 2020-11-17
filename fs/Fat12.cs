@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 
 namespace FileSystem{
+    /*
     class Fat12{
         class Cluster{
             System.Byte[] bytes;
@@ -26,7 +27,7 @@ namespace FileSystem{
         private int bytesPerCluster = 16384;
         private Byte[] boot = new Byte[]{
             new Byte(0x0, new byte[] { 0xEB, 0x3C, 0x90 }),
-            new Byte(0x3, Encoding.ASCII.GetBytes("fatboy")),
+            new Byte(0x3, Encoding.ASCII.GetBytes("lolkek")),
             new Byte(0xB, BitConverter.GetBytes((ushort)512)),
             new Byte(0xD, new byte[] { (byte)32u }),
             new Byte(0xE, BitConverter.GetBytes((ushort)1)),
@@ -37,7 +38,7 @@ namespace FileSystem{
             new Byte(0x16, BitConverter.GetBytes((ushort)9)), 
             new Byte(0x26, new byte[] { 0x29 }),
             new Byte(0x27, new byte[] { 0xFF, 0xFF, 0xFF, 0xFF }), 
-            new Byte(0x02B, Encoding.ASCII.GetBytes("FATBOY     FAT12   ")) 
+            new Byte(0x02B, Encoding.ASCII.GetBytes("LOLKEK     FAT12   ")) 
         };
 
         private Byte fatId = new Byte(0, new byte[] { 0xF0, 0xFF, 0xFF });
@@ -55,6 +56,41 @@ namespace FileSystem{
             cluster.write(fileStream, offset);
             size.write(fileStream, offset);
         }
+
+        
+        //byte[] cluster_map_pair = new byte[3];
+        // void writeFAT(Stream fStream, long offset){
+        //         fatId.write(fStream, offset);
+        //         bool half = false;
+        //         foreach (FatFile file in files)
+        //         {
+        //             uint last = file.clusters.Last();
+        //             foreach (uint cluster in file.clusters)
+        //             {
+        //                 ushort mapvalue = (ushort)(cluster == last ? 0xFFF : cluster + 1);
+        //                 if (!half)
+        //                 {
+        //                     half = true;
+        //                     cluster_map_pair[0] = (byte)mapvalue;
+        //                     cluster_map_pair[1] = (byte)(mapvalue >> 8);
+        //                 }
+        //                 else
+        //                 {
+        //                     half = false;
+
+        //                     cluster_map_pair[2] = (byte)(mapvalue >> 4);
+        //                     mapvalue &= 0x00F;
+        //                     cluster_map_pair[1] ^= (byte)(mapvalue << 4);
+        //                     fStream.Write(cluster_map_pair);
+        //                     cluster_map_pair[2] = 0;
+        //                 }
+        //             }
+        //         }
+        //         if (half)
+        //         {
+        //             fStream.Write(cluster_map_pair);
+        //         }
+        // }
 
 
         private void writeCluster(Img.File file, Stream fileStream){
@@ -102,41 +138,6 @@ namespace FileSystem{
             size.write(fileStream, offset);
         }
 
-
-        //byte[] cluster_map_pair = new byte[3];
-        // void writeFAT(Stream fStream, long offset){
-        //         fatId.write(fStream, offset);
-        //         bool half = false;
-        //         foreach (FatFile file in files)
-        //         {
-        //             uint last = file.clusters.Last();
-        //             foreach (uint cluster in file.clusters)
-        //             {
-        //                 ushort mapvalue = (ushort)(cluster == last ? 0xFFF : cluster + 1);
-        //                 if (!half)
-        //                 {
-        //                     half = true;
-        //                     cluster_map_pair[0] = (byte)mapvalue;
-        //                     cluster_map_pair[1] = (byte)(mapvalue >> 8);
-        //                 }
-        //                 else
-        //                 {
-        //                     half = false;
-
-        //                     cluster_map_pair[2] = (byte)(mapvalue >> 4);
-        //                     mapvalue &= 0x00F;
-        //                     cluster_map_pair[1] ^= (byte)(mapvalue << 4);
-        //                     fStream.Write(cluster_map_pair);
-        //                     cluster_map_pair[2] = 0;
-        //                 }
-        //             }
-        //         }
-        //         if (half)
-        //         {
-        //             fStream.Write(cluster_map_pair);
-        //         }
-        // }
-
         public void createImage(Img.Image img){
             Stream file = new FileStream(img.getName(), FileMode.Create, FileAccess.ReadWrite);
             List<Cluster> clusters = new List<Cluster>();
@@ -152,7 +153,7 @@ namespace FileSystem{
 
             var fileOffset = offsetToClusterSection;
 
-            writeLabel("FATBOY", file, fileOffset);
+            writeLabel("LOLKEK", file, fileOffset);
 
             fileOffset += 32;
 
@@ -223,5 +224,8 @@ namespace FileSystem{
             
         }
     }
-
+    */
+    class Ext2{
+        
+    }
 }

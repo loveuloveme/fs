@@ -8,8 +8,9 @@ public class Image{
         string filePath;
         string fileName;
 
-        public File(string filePath_){
+        public File(string filePath_, string name){
             filePath = filePath_;
+            fileName = name;
         }
 
         public System.Byte[] GetByte(){
@@ -22,6 +23,10 @@ public class Image{
 
     List<File> files = new List<File>();
     string name = "LOLKEK";
+
+    public void AddFile(File file){
+        files.Add(file);
+    }
 
     public List<File> GetFiles() => files;
     public string GetName() => name;

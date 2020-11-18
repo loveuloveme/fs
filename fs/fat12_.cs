@@ -8,10 +8,12 @@ namespace FileSystem{
         class FatUnit{
             long offset;
 
-            List<List<int>> clusterMap = new List<List<int>>();
+            List<List<int>> clusterMap = new List<List<int>>(){};
             
             public void Write(Stream fstream, long offset){
+
                 fstream.Seek(offset, SeekOrigin.Begin);
+                fstream.Write(new byte[]{0xf0, 0xff, 0xff});
 
                 bool half = false;
                 bool isLast = false;
@@ -19,20 +21,15 @@ namespace FileSystem{
 
                 for(int i = 0; i < clusterMap.Count; i++){
                     List<int> clusters = clusterMap[i];
-                    System.Console.WriteLine("File "+i+": ");
 
                     isLast = false;
 
                     for(int j = 0; j < clusters.Count; j++){
-                        System.Console.WriteLine(j);
-
                         if(j == clusters.Count - 1){
                             isLast = true;
-                        }else{
-                            if(clusters[j] != clusters[j + 1]) isLast = true;
                         }
 
-                        ushort value = (ushort)(isLast ? 0xfff : clusters[j] + 1);
+                        ushort value = (ushort)(isLast ? 0xff : clusters[j] + 1);
 
                         if (!half){
                             half = true;
@@ -50,6 +47,10 @@ namespace FileSystem{
                             cluster_map_pair[2] = 0;
                         }
                     }
+                }
+
+                if(half){
+                    fstream.Write(cluster_map_pair);
                 }
             }
             public void Add(List<int> clusters){
@@ -87,11 +88,11 @@ namespace FileSystem{
             public File(long fileOffset, string name_, List<int> clustersId, int size_ = 0, long attr_ = 0){
                 offset = fileOffset;
 
-                name = new Byte(0x0, name_);
+                name = new Byte(0x0, name_+"     ");
                 attr = new Byte(0xB); 
                 createDate = new Byte(0x0 + 16, new byte[]{0x5, 0x5});
                 accessDate = new Byte(0x0 + 18, new byte[]{0x4, 0x4});
-                firstCluster = new Byte(0x0 + 20, new byte[]{0x3, 0x3});
+                firstCluster = new Byte(0x0 + 20);
                 writeTime = new Byte(0x0 + 22, new byte[]{0x2, 0x2});
                 writeDate = new Byte(0x0 + 24, new byte[]{0x1, 0x2});
                 cluster = new Byte(0x1A, BitConverter.GetBytes(clustersId[0]));

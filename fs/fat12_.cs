@@ -158,18 +158,16 @@ namespace FileSystem{
 
 
 
-                string binStr = dayStr+monthStr+yearStr;
-                System.Console.WriteLine(dayStr+";"+monthStr+";"+yearStr);
-                System.Console.WriteLine(binStr.Substring(0, 8));
-                System.Console.WriteLine(binStr.Substring(8, 8));
-
-                return new byte[]{(byte)Convert.ToInt32(binStr.Substring(0, 8), 2), (byte)Convert.ToInt32(binStr.Substring(8, 8), 2)};
+                string binStr = yearStr+monthStr+dayStr;
+                return new byte[]{(byte)Convert.ToInt32(binStr.Substring(8, 8), 2), (byte)Convert.ToInt32(binStr.Substring(0, 8), 2)};
             }
 
             private byte[] _parseTime(DateTime time){
-                ushort second = (ushort)time.Second;
+                ushort second = (ushort)(Math.Ceiling((double)time.Second/2));
                 ushort minute = (ushort)time.Minute;
                 ushort hour = (ushort)time.Hour;
+
+                System.Console.WriteLine(minute);
 
                 string secondStr = Convert.ToString(second, 2);
                 string minuteStr = Convert.ToString(minute, 2);
@@ -195,7 +193,7 @@ namespace FileSystem{
                     string temp = minuteStr;
                     minuteStr = "";
 
-                    for(int i = 0; i < 4 - temp.Length; i++){
+                    for(int i = 0; i < 6 - temp.Length; i++){
                         minuteStr += "0";
                     }
 
@@ -206,7 +204,7 @@ namespace FileSystem{
                     string temp = hourStr;
                     hourStr = "";
 
-                    for(int i = 0; i < 7 - temp.Length; i++){
+                    for(int i = 0; i < 5 - temp.Length; i++){
                         hourStr += "0";
                     }
 
@@ -215,9 +213,9 @@ namespace FileSystem{
 
 
 
-                string binStr = secondStr+minuteStr+hourStr;
+                string binStr = hourStr+minuteStr+secondStr;
 
-                return new byte[]{(byte)Convert.ToInt32(binStr.Substring(0, 8), 2), (byte)Convert.ToInt32(binStr.Substring(8, 8), 2)};
+                return new byte[]{(byte)Convert.ToInt32(binStr.Substring(8, 8), 2), (byte)Convert.ToInt32(binStr.Substring(0, 8), 2)};
             }
 
             public File(long fileOffset, string name_, string ext, List<int> clustersId, DateTime createTime_, DateTime writeDate_, int size_ = 0, long attr_ = 0){

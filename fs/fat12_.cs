@@ -156,8 +156,6 @@ namespace FileSystem{
                     yearStr += temp;
                 }
 
-
-
                 string binStr = yearStr+monthStr+dayStr;
                 return new byte[]{(byte)Convert.ToInt32(binStr.Substring(8, 8), 2), (byte)Convert.ToInt32(binStr.Substring(0, 8), 2)};
             }
@@ -166,8 +164,6 @@ namespace FileSystem{
                 ushort second = (ushort)(Math.Ceiling((double)time.Second/2));
                 ushort minute = (ushort)time.Minute;
                 ushort hour = (ushort)time.Hour;
-
-                System.Console.WriteLine(minute);
 
                 string secondStr = Convert.ToString(second, 2);
                 string minuteStr = Convert.ToString(minute, 2);
@@ -211,8 +207,6 @@ namespace FileSystem{
                     hourStr += temp;
                 }
 
-
-
                 string binStr = hourStr+minuteStr+secondStr;
 
                 return new byte[]{(byte)Convert.ToInt32(binStr.Substring(8, 8), 2), (byte)Convert.ToInt32(binStr.Substring(0, 8), 2)};
@@ -233,6 +227,56 @@ namespace FileSystem{
                 size = new Byte(0x1C, BitConverter.GetBytes(size_)); 
             }
 
+            class LongFileName{
+                Byte order;
+                Byte name;
+                Byte attr;
+                Byte type;
+                Byte sum;
+                Byte name2;
+                Byte firstCluster;
+                Byte name3;
+
+                long offset;
+
+                private string parseName(string name_, string ext){
+                    for(int i = 0; i < 23; i++){
+                        if(i < name_.Length){
+                            name_ += " ";
+                        }
+                    }
+
+                    name_ += ext[0];
+                    name_ += ext[1];
+                    name_ += ext[2];
+
+                    return name_;
+                }
+                public LongFileName(long fileOffset, string name_, string ext, List<int> clustersId, int size_ = 0, long attr_ = 0){
+                    name_ = parseName(name_, ext);
+                    offset = fileOffset;
+
+                    order = new Byte(0x00, 0x40); 
+                    name = new Byte(0x01, name_.Substring(0, 10));
+                    attr = new Byte(0xB, 0x0f);
+                    type = new Byte(0xC);
+                    sum = new Byte(0xD);
+                    name2 = new Byte(0xE, name_.Substring(10, 12));
+                    firstCluster = new Byte(0xA + 16);
+                    name3 = new Byte(0xC + 16, name_.Substring(22, 4));
+                }
+
+                public void Write(Stream fstream){
+                    name.write(fstream, offset);
+                    attr.write(fstream, offset);
+                    type.write(fstream, offset);
+                    sum.write(fstream, offset);
+                    name2.write(fstream, offset);
+                    firstCluster.write(fstream, offset);
+                    name3.write(fstream, offset);;
+                }
+            }
+            
             public File(long fileOffset, string name_){
                 offset = fileOffset;
 
@@ -294,9 +338,10 @@ namespace FileSystem{
         FatUnit FatTable = new FatUnit();
         bool isReady = false;
 
-        public Fat12(string diskName){
-            string sampleDiskName = "";
+        int freeClusterCount;
 
+        public Fat12(string diskName, int bytesPerCluster = 512, int sectorsPerCluster = 16384, int dirCount = 16, int sectorsPerFat = 9){
+            string sampleDiskName = "";
 
             for(int i = 0; i < 6; i++){
                 if(i < diskName.Length){
@@ -306,10 +351,11 @@ namespace FileSystem{
                 }
             }
 
-
             volume = new File(0x2600, sampleDiskName);
             boot.boot[1] = new Byte(0x3, Encoding.ASCII.GetBytes(sampleDiskName));
             boot.boot[12] = new Byte(0x02B, Encoding.ASCII.GetBytes(sampleDiskName+"     FAT12   "));
+
+
         }
 
         private void writeBoot(Stream file){
@@ -345,11 +391,6 @@ namespace FileSystem{
             long offsetCluster = 0x2800;
 
             foreach(var item in imgFiles){
-                
-                
-                System.Console.WriteLine(item.GetCreationTime());
-                System.Console.WriteLine(item.GetWriteTime());
-
                 System.Byte[] rawData = item.GetByte();
                 int size = rawData.Length;
                 int clusterCount = (int)Math.Ceiling((double)size/(double)bytesPerCluster);

@@ -7,10 +7,12 @@ public class Image{
     public class File{
         string filePath;
         string fileName;
+        string fileExt;
 
-        public File(string filePath_, string name){
+        public File(string filePath_, string name, string ext){
             filePath = filePath_;
             fileName = name;
+            fileExt = ext;
         }
 
         public System.Byte[] GetByte(){
@@ -19,6 +21,14 @@ public class Image{
         }
 
         public string GetName() => fileName;
+        public string GetExt() => fileExt;
+
+        public DateTime GetCreationTime(){
+            return System.IO.File.GetCreationTime(@filePath);
+        }
+        public DateTime GetWriteTime(){
+            return System.IO.File.GetLastWriteTime(@filePath);
+        }
     }
 
     List<File> files = new List<File>();

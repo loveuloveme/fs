@@ -76,6 +76,7 @@ namespace FileSystem{
             Byte name;
             Byte attr;
             Byte createDate;
+            Byte createTime;
             Byte accessDate;
             Byte firstCluster;
             Byte writeTime;
@@ -85,16 +86,151 @@ namespace FileSystem{
 
             long offset;
 
-            public File(long fileOffset, string name_, List<int> clustersId, int size_ = 0, long attr_ = 0){
+            private string parseName(string name, string ext = ""){
+                string nameSample = "";
+                string extSample = "";
+
+                for(int i = 0; i < 8; i++){
+                    if(i < name.Length){
+                        nameSample += name[i];
+                    }else{
+                        nameSample += " ";
+                    }
+                }
+
+                for(int i = 0; i < 8; i++){
+                    if(i < ext.Length){
+                        extSample += ext[i];
+                    }else{
+                        extSample += " ";
+                    }
+                }
+
+                return (nameSample+ext).ToUpper();
+            }
+
+            private byte[] _parseDate(DateTime time){
+                ushort day = (ushort)time.Day;
+                ushort month = (ushort)time.Month;
+                ushort year = (ushort)(time.Year - 1980);
+
+                string dayStr = Convert.ToString(day, 2);
+                string monthStr = Convert.ToString(month, 2);
+                string yearStr = Convert.ToString(year, 2);
+
+                // byte[] res = new byte[2];
+
+                // res[0] = (byte)((day << 3) + (month >> 1));
+                // res[1] = (byte)((month >> 3) + (year));
+
+                if(dayStr.Length < 5){
+                    string temp = dayStr;
+                    dayStr = "";
+
+                    for(int i = 0; i < 5 - temp.Length; i++){
+                        dayStr += "0";
+                    }
+
+                    dayStr += temp;
+                }
+
+                if(monthStr.Length < 4){
+                    string temp = monthStr;
+                    monthStr = "";
+
+                    for(int i = 0; i < 4 - temp.Length; i++){
+                        monthStr += "0";
+                    }
+
+                    monthStr += temp;
+                }
+
+                if(yearStr.Length < 7){
+                    string temp = yearStr;
+                    yearStr = "";
+
+                    for(int i = 0; i < 7 - temp.Length; i++){
+                        yearStr += "0";
+                    }
+
+                    yearStr += temp;
+                }
+
+
+
+                string binStr = dayStr+monthStr+yearStr;
+                System.Console.WriteLine(dayStr+";"+monthStr+";"+yearStr);
+                System.Console.WriteLine(binStr.Substring(0, 8));
+                System.Console.WriteLine(binStr.Substring(8, 8));
+
+                return new byte[]{(byte)Convert.ToInt32(binStr.Substring(0, 8), 2), (byte)Convert.ToInt32(binStr.Substring(8, 8), 2)};
+            }
+
+            private byte[] _parseTime(DateTime time){
+                ushort second = (ushort)time.Second;
+                ushort minute = (ushort)time.Minute;
+                ushort hour = (ushort)time.Hour;
+
+                string secondStr = Convert.ToString(second, 2);
+                string minuteStr = Convert.ToString(minute, 2);
+                string hourStr = Convert.ToString(hour, 2);
+
+                // byte[] res = new byte[2];
+
+                // res[0] = (byte)((day << 3) + (month >> 1));
+                // res[1] = (byte)((month >> 3) + (year));
+
+                if(secondStr.Length < 5){
+                    string temp = secondStr;
+                    secondStr = "";
+
+                    for(int i = 0; i < 5 - temp.Length; i++){
+                        secondStr += "0";
+                    }
+
+                    secondStr += temp;
+                }
+
+                if(minuteStr.Length < 6){
+                    string temp = minuteStr;
+                    minuteStr = "";
+
+                    for(int i = 0; i < 4 - temp.Length; i++){
+                        minuteStr += "0";
+                    }
+
+                    minuteStr += temp;
+                }
+
+                if(hourStr.Length < 5){
+                    string temp = hourStr;
+                    hourStr = "";
+
+                    for(int i = 0; i < 7 - temp.Length; i++){
+                        hourStr += "0";
+                    }
+
+                    hourStr += temp;
+                }
+
+
+
+                string binStr = secondStr+minuteStr+hourStr;
+
+                return new byte[]{(byte)Convert.ToInt32(binStr.Substring(0, 8), 2), (byte)Convert.ToInt32(binStr.Substring(8, 8), 2)};
+            }
+
+            public File(long fileOffset, string name_, string ext, List<int> clustersId, DateTime createTime_, DateTime writeDate_, int size_ = 0, long attr_ = 0){
                 offset = fileOffset;
 
-                name = new Byte(0x0, name_+"     ");
+                name = new Byte(0x0, parseName(name_, ext));
                 attr = new Byte(0xB); 
-                createDate = new Byte(0x0 + 16, new byte[]{0x5, 0x5});
-                accessDate = new Byte(0x0 + 18, new byte[]{0x4, 0x4});
+                createTime = new Byte(0x0 + 14, _parseTime(createTime_));
+                createDate = new Byte(0x0 + 16, _parseDate(createTime_));
+                accessDate = new Byte(0x0 + 18);
                 firstCluster = new Byte(0x0 + 20);
-                writeTime = new Byte(0x0 + 22, new byte[]{0x2, 0x2});
-                writeDate = new Byte(0x0 + 24, new byte[]{0x1, 0x2});
+                writeTime = new Byte(0x0 + 22, _parseTime(writeDate_));
+                writeDate = new Byte(0x0 + 24, _parseDate(writeDate_));
                 cluster = new Byte(0x1A, BitConverter.GetBytes(clustersId[0]));
                 size = new Byte(0x1C, BitConverter.GetBytes(size_)); 
             }
@@ -102,9 +238,10 @@ namespace FileSystem{
             public File(long fileOffset, string name_){
                 offset = fileOffset;
 
-                name = new Byte(0x0, name_);
+                name = new Byte(0x0, parseName(name_));
                 attr = new Byte(0xB, new byte[]{0x8}); 
                 createDate = new Byte(0x0 + 16);
+                createTime = new Byte(0x0 + 16);
                 accessDate = new Byte(0x0 + 18);
                 firstCluster = new Byte(0x0 + 20);
                 writeTime = new Byte(0x0 + 22);
@@ -117,6 +254,7 @@ namespace FileSystem{
                 name.write(fstream, offset);
                 attr.write(fstream, offset);
                 createDate.write(fstream, offset);
+                createTime.write(fstream, offset);
                 accessDate.write(fstream, offset);
                 firstCluster.write(fstream, offset);
                 writeTime.write(fstream, offset);
@@ -127,7 +265,7 @@ namespace FileSystem{
         }
         
         class Boot{
-            private Byte[] boot = new Byte[]{
+            public Byte[] boot = new Byte[]{
                 new Byte(0x0, new byte[] { 0xEB, 0x3C, 0x90 }),
                 new Byte(0x3, Encoding.ASCII.GetBytes("lolkek")),
                 new Byte(0xB, BitConverter.GetBytes((ushort)512)),
@@ -152,11 +290,29 @@ namespace FileSystem{
         private int bytesPerCluster = 16384;
 
         Boot boot = new Boot();
-        File volume = new File(0x2600, "LOLKEK");
+        File volume;
         List<File> files = new List<File>();
         List<Cluster> clusters = new List<Cluster>();
         FatUnit FatTable = new FatUnit();
         bool isReady = false;
+
+        public Fat12(string diskName){
+            string sampleDiskName = "";
+
+
+            for(int i = 0; i < 6; i++){
+                if(i < diskName.Length){
+                    sampleDiskName += diskName[i];
+                }else{
+                    sampleDiskName += " ";
+                }
+            }
+
+
+            volume = new File(0x2600, sampleDiskName);
+            boot.boot[1] = new Byte(0x3, Encoding.ASCII.GetBytes(sampleDiskName));
+            boot.boot[12] = new Byte(0x02B, Encoding.ASCII.GetBytes(sampleDiskName+"     FAT12   "));
+        }
 
         private void writeBoot(Stream file){
             boot.Write(file);
@@ -191,6 +347,11 @@ namespace FileSystem{
             long offsetCluster = 0x2800;
 
             foreach(var item in imgFiles){
+                
+                
+                System.Console.WriteLine(item.GetCreationTime());
+                System.Console.WriteLine(item.GetWriteTime());
+
                 System.Byte[] rawData = item.GetByte();
                 int size = rawData.Length;
                 int clusterCount = (int)Math.Ceiling((double)size/(double)bytesPerCluster);
@@ -213,7 +374,7 @@ namespace FileSystem{
 
                 FatTable.Add(clustersId);
 
-                files.Add(new File(offset, item.GetName(), clustersId, size));
+                files.Add(new File(offset, item.GetName(), item.GetExt(), clustersId, item.GetCreationTime(), item.GetWriteTime(), size));
                 offset += bytesPerItem;
             }
 
@@ -232,8 +393,6 @@ namespace FileSystem{
             writeVolume(file);
             writeFiles(file);
             writeClusters(file);
-
-            
         }
     }
 

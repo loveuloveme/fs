@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+
 namespace FileSystem{
     class Ext2{
         class SuperBlock{
@@ -6,9 +11,9 @@ namespace FileSystem{
             Byte s_r_blocks_count;
             Byte s_free_blocks_count; 
             Byte s_free_inodes_count; 
-            Byte s_first_data_block;
-            Byte s_log_block_size;
-            Byte s_log_frag_size;
+            Byte s_first_data_block;  
+            Byte s_log_block_size;    
+            Byte s_log_frag_size;     
             Byte s_blocks_per_group;
             Byte s_frags_per_group;
             Byte s_inodes_per_group;
@@ -41,14 +46,160 @@ namespace FileSystem{
             Byte s_padding1;
             Byte s_reserved;
 
-            public SuperBlock(){
+            public SuperBlock(int inodesCount, int blocksCount){
+                s_inodes_count = new Byte(0x0, BitConverter.GetBytes(inodesCount)); 
+                s_blocks_count = new Byte(0x0 + 4, BitConverter.GetBytes(blocksCount)); 
 
+                s_free_blocks_count = new Byte(0x0 + 12);
+                s_free_inodes_count = new Byte(0x0 + 16);
+                s_first_data_block = new Byte(0x0 + 20);
+                s_log_block_size = new Byte(0x0 + 24, BitConverter.GetBytes(0));
+                s_log_frag_size = new Byte(0x0 + 28, BitConverter.GetBytes(0));
             }
         }
 
+        class GroupDesc{
+            long offset;
 
-        public void readAbstract(){
+            Byte bg_block_bitmap;
+            Byte bg_inode_bitmap;
+            Byte bg_inode_table;
+            Byte bg_free_blocks_count;
+            Byte bg_free_inodes_count;
+            Byte bg_used_dirs_count;    
+            Byte bg_pad;                       
+            Byte bg_reserved;
 
-        }   
+            public GroupDesc(){
+                bg_block_bitmap = new Byte(0x0);
+                bg_inode_bitmap = new Byte(0x0 + 4);
+                bg_inode_table = new Byte(0x0 + 8);
+                bg_free_blocks_count = new Byte(0x0 + 12);
+                bg_free_inodes_count = new Byte(0x0 + 14);
+                bg_used_dirs_count = new Byte(0x0 + 16);
+                bg_pad = new Byte(0x0 + 18);
+                bg_reserved = new Byte(0x0 + 20); 
+
+                /* 32 bytes */
+            }
+        }
+
+        class Inode{
+            Byte i_mode = new Byte(0x0);                        /* File mode */
+            Byte i_uid = new Byte(0x0 + 2);                /* Low 16 bits of Owner Uid */
+            Byte i_size = new Byte(0x0 + 4);               /* Size in bytes */
+            Byte i_atime = new Byte(0x0 + 8);                        /* Access time */
+            Byte i_ctime = new Byte(0x0 + 12);                        /* Creation time */
+            Byte i_mtime = new Byte(0x0 + 16);                       /* Modification time */
+            Byte i_dtime = new Byte(0x0 + 20);                        /* Deletion Time */
+            Byte i_gid = new Byte(0x0 + 24);                /* Low 16 bits of Group Id */
+            Byte i_links_count = new Byte(0x0 + 26);   /* Links count */
+            Byte i_blocks = new Byte(0x0 + 28);                      /* Blocks count */
+            Byte i_flags = new Byte(0x0 + 32);              /* File flags */
+            Byte osd1 = new Byte(0x0 + 36);                                     /* OS dependent 1 */
+            Byte i_block = new Byte(0x0 + 40); //[EXT2_N_BLOCKS]; /* Pointers to blocks */
+            Byte i_generation = new Byte(0x0 + 44);     /* File version (for NFS) */
+            Byte i_file_acl = new Byte(0x0 + 48);                      /* File ACL */
+            Byte i_dir_acl = new Byte(0x0 + 52);                      /* Directory ACL */
+            Byte i_faddr = new Byte(0x0 + 56);                        /* Fragment address */
+            Byte l_i_frag = new Byte(0x0 + 60);            /* Fragment number */
+            Byte l_i_fsize = new Byte(0x0 + 61);           /* Fragment size */
+            Byte i_pad1 = new Byte(0x0 + 62);
+            Byte l_i_uid_high = new Byte(0x0 + 64);     /* these 2 fields    */
+            Byte l_i_gid_high = new Byte(0x0 + 66);     /* were reserved2[0] */
+            Byte l_i_reserved2 = new Byte(0x0 +  68);
+
+            public Inode(){
+                
+            }
+        }
+
+        class Block{
+            long offset;
+            System.Byte[] rawData;
+
+            public Block(System.Byte[] data, long offset_){
+                rawData = data;
+                offset = offset_;
+            }
+
+            public void Write(Stream file){
+                file.Seek(offset, SeekOrigin.Begin);
+                file.Write(rawData);
+            }
+        }
+
+        class File{
+            Byte inode; /* Inode number */
+            Byte rec_len;/* Directory entry length */
+            Byte name_len;/* Name length */
+            Byte name;//[EXT2_NAME_LEN]; /* File name */
+
+            public File(int inodeNum, int size, int nameSize, string name_){
+                inode = new Byte(0x0, BitConverter.GetBytes(inodeNum));             /* Inode number */
+                rec_len = new Byte(0x0 + 4, BitConverter.GetBytes(size));             /* Directory entry length */
+                name_len = new Byte(0x0 + 6, BitConverter.GetBytes(nameSize));        /* Name length */
+                name_len = new Byte(0x0 + 7, BitConverter.GetBytes(1));
+                name = new Byte(0x0 + 8, name_); //[EXT2_NAME_LEN]; /* File name */
+            }
+        }
+
+        List<int> blockMap = new List<int>();
+        List<int> inodeMap = new List<int>();
+
+        List<Block> blocks = new List<Block>();
+        List<Inode> inodes = new List<Inode>();
+
+        int blockSize = 1024;
+
+        public Ext2(){
+
+        }
+
+        public void createImage(){
+
+        }
+
+        public void readAbstract(Image img){
+            List<Image.File> imgFiles = img.GetFiles();
+            
+            long offset = 0x2600 + 32;
+            long bytesPerItem = 32;
+            long offsetCluster = 0x2800;
+
+            foreach(var item in imgFiles){
+                System.Byte[] rawData;
+
+                if(!item.Dir()){
+                    rawData = item.GetByte();
+                }else{
+                    rawData = new System.Byte[0];
+                }
+
+                Inode inodeFile = new Inode();
+                File file = new File(0, rawData.Length, item.GetName().Length, item.GetName());
+
+                int size = rawData.Length;
+                int clusterCount = (int)Math.Ceiling((double)size/(double)blockSize);
+
+                List<int> clustersId = new List<int>();
+
+                for(int i = 0; i < clusterCount; i++){
+                    blockMap.Add(1);
+
+                    System.Byte[] rawDataSub = new System.Byte[blockSize];
+
+                    for(int j = blockSize*i; j < blockSize*(i+1); j++){
+                        if(j == size) break;
+
+                        rawDataSub[j - blockSize*i] = rawData[j];
+                    }
+
+                    clustersId.Add(blocks.Count);
+                    blocks.Add(new Block(rawDataSub, offsetCluster));
+                    offsetCluster += blockSize;
+                }
+            }
+        }
     }
 }

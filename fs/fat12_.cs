@@ -86,6 +86,8 @@ namespace FileSystem{
 
             long offset;
 
+            bool isDir = false;
+
             private string parseName(string name, string ext = ""){
                 string nameSample = "";
                 string extSample = "";
@@ -214,9 +216,9 @@ namespace FileSystem{
 
             public File(long fileOffset, string name_, string ext, List<int> clustersId, DateTime createTime_, DateTime writeDate_, int size_ = 0, long attr_ = 0){
                 offset = fileOffset;
-
                 name = new Byte(0x0, parseName(name_, ext));
-                attr = new Byte(0xB); 
+                attr = new Byte(0xB);
+                size = new Byte(0x1C, BitConverter.GetBytes(size_)); 
                 createTime = new Byte(0x0 + 14, _parseTime(createTime_));
                 createDate = new Byte(0x0 + 16, _parseDate(createTime_));
                 accessDate = new Byte(0x0 + 18);
@@ -224,7 +226,13 @@ namespace FileSystem{
                 writeTime = new Byte(0x0 + 22, _parseTime(writeDate_));
                 writeDate = new Byte(0x0 + 24, _parseDate(writeDate_));
                 cluster = new Byte(0x1A, BitConverter.GetBytes(clustersId[0]));
-                size = new Byte(0x1C, BitConverter.GetBytes(size_)); 
+                
+                if(attr_ == 0x10){
+                    isDir = true;
+                    attr = new Byte(0xB, BitConverter.GetBytes(attr_)); 
+                    size = new Byte(0x1C, BitConverter.GetBytes(0)); 
+                    cluster = new Byte(0x1A, BitConverter.GetBytes(2));
+                }
             }
 
             class LongFileName{
@@ -391,7 +399,14 @@ namespace FileSystem{
             long offsetCluster = 0x2800;
 
             foreach(var item in imgFiles){
-                System.Byte[] rawData = item.GetByte();
+                System.Byte[] rawData;
+
+                if(!item.Dir()){
+                    rawData = item.GetByte();
+                }else{
+                    rawData = new System.Byte[0];
+                }
+
                 int size = rawData.Length;
                 int clusterCount = (int)Math.Ceiling((double)size/(double)bytesPerCluster);
 
@@ -413,8 +428,15 @@ namespace FileSystem{
 
                 FatTable.Add(clustersId);
 
-                files.Add(new File(offset, item.GetName(), item.GetExt(), clustersId, item.GetCreationTime(), item.GetWriteTime(), size));
-                offset += bytesPerItem;
+                if(!item.Dir()){
+                    files.Add(new File(offset, item.GetName(), item.GetExt(), clustersId, item.GetCreationTime(), item.GetWriteTime(), size));
+                    offset += bytesPerItem;
+                }else{
+                    continue;
+                    
+                    files.Add(new File(offset, item.GetName(), item.GetExt(), new List<int>(){0}, item.GetCreationTime(), item.GetWriteTime(), 0, 0x10));
+                }
+                
             }
 
             isReady = true;

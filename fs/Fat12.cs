@@ -225,7 +225,4 @@ namespace FileSystem{
         }
     }
     */
-    class Ext2{
-        
-    }
 }

@@ -4,6 +4,7 @@
 
         img.AddFile(new Image.File("./jopa.txt", "YAKIDAN", "JOP"));
         img.AddFile(new Image.File("./jopa.txt", "heheunited", "txt"));
+        img.AddFile(new Image.File("Kek"));
 
         //file_.getRoot().addFile(new Img.File("lohtv", "./jopa.txt"));
         //file_.getRoot().addFile(new Img.File("lohtv2", "./jopa.txt"));

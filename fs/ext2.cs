@@ -55,6 +55,8 @@ namespace FileSystem{
                 s_first_data_block = new Byte(0x0 + 20);
                 s_log_block_size = new Byte(0x0 + 24, BitConverter.GetBytes(0));
                 s_log_frag_size = new Byte(0x0 + 28, BitConverter.GetBytes(0));
+
+                s_blocks_per_group = new Byte(0x0 + 28, BitConverter.GetBytes(1));
             }
         }
 
@@ -85,32 +87,54 @@ namespace FileSystem{
         }
 
         class Inode{
-            Byte i_mode = new Byte(0x0);                        /* File mode */
-            Byte i_uid = new Byte(0x0 + 2);                /* Low 16 bits of Owner Uid */
-            Byte i_size = new Byte(0x0 + 4);               /* Size in bytes */
-            Byte i_atime = new Byte(0x0 + 8);                        /* Access time */
-            Byte i_ctime = new Byte(0x0 + 12);                        /* Creation time */
-            Byte i_mtime = new Byte(0x0 + 16);                       /* Modification time */
-            Byte i_dtime = new Byte(0x0 + 20);                        /* Deletion Time */
-            Byte i_gid = new Byte(0x0 + 24);                /* Low 16 bits of Group Id */
-            Byte i_links_count = new Byte(0x0 + 26);   /* Links count */
-            Byte i_blocks = new Byte(0x0 + 28);                      /* Blocks count */
-            Byte i_flags = new Byte(0x0 + 32);              /* File flags */
-            Byte osd1 = new Byte(0x0 + 36);                                     /* OS dependent 1 */
-            Byte i_block = new Byte(0x0 + 40); //[EXT2_N_BLOCKS]; /* Pointers to blocks */
-            Byte i_generation = new Byte(0x0 + 44);     /* File version (for NFS) */
-            Byte i_file_acl = new Byte(0x0 + 48);                      /* File ACL */
-            Byte i_dir_acl = new Byte(0x0 + 52);                      /* Directory ACL */
-            Byte i_faddr = new Byte(0x0 + 56);                        /* Fragment address */
-            Byte l_i_frag = new Byte(0x0 + 60);            /* Fragment number */
-            Byte l_i_fsize = new Byte(0x0 + 61);           /* Fragment size */
-            Byte i_pad1 = new Byte(0x0 + 62);
-            Byte l_i_uid_high = new Byte(0x0 + 64);     /* these 2 fields    */
-            Byte l_i_gid_high = new Byte(0x0 + 66);     /* were reserved2[0] */
-            Byte l_i_reserved2 = new Byte(0x0 +  68);
+            Byte i_mode;                        /* File mode */
+            Byte i_uid;                /* Low 16 bits of Owner Uid */
+            Byte i_size;               /* Size in bytes */
+            Byte i_atime;                        /* Access time */
+            Byte i_ctime;                        /* Creation time */
+            Byte i_mtime;                       /* Modification time */
+            Byte i_dtime;                        /* Deletion Time */
+            Byte i_gid;                /* Low 16 bits of Group Id */
+            Byte i_links_count;   /* Links count */
+            Byte i_blocks;                      /* Blocks count */
+            Byte i_flags;              /* File flags */
+            Byte osd1;                                     /* OS dependent 1 */
+            Byte i_block; //[EXT2_N_BLOCKS]; /* Pointers to blocks */
+            Byte i_generation;     /* File version (for NFS) */
+            Byte i_file_acl;                      /* File ACL */
+            Byte i_dir_acl;                      /* Directory ACL */
+            Byte i_faddr;                        /* Fragment address */
+            Byte l_i_frag;            /* Fragment number */
+            Byte l_i_fsize;           /* Fragment size */
+            Byte i_pad1;
+            Byte l_i_uid_high;     /* these 2 fields    */
+            Byte l_i_gid_high;     /* were reserved2[0] */
+            Byte l_i_reserved2;
 
             public Inode(){
-                
+                Byte i_mode = new Byte(0x0);                        /* File mode */
+                Byte i_uid = new Byte(0x0 + 2);                /* Low 16 bits of Owner Uid */
+                Byte i_size = new Byte(0x0 + 4);               /* Size in bytes */
+                Byte i_atime = new Byte(0x0 + 8);                        /* Access time */
+                Byte i_ctime = new Byte(0x0 + 12);                        /* Creation time */
+                Byte i_mtime = new Byte(0x0 + 16);                       /* Modification time */
+                Byte i_dtime = new Byte(0x0 + 20);                        /* Deletion Time */
+                Byte i_gid = new Byte(0x0 + 24);                /* Low 16 bits of Group Id */
+                Byte i_links_count = new Byte(0x0 + 26);   /* Links count */
+                Byte i_blocks = new Byte(0x0 + 28);                      /* Blocks count */
+                Byte i_flags = new Byte(0x0 + 32);              /* File flags */
+                Byte osd1 = new Byte(0x0 + 36);                                     /* OS dependent 1 */
+                Byte i_block = new Byte(0x0 + 40); //[EXT2_N_BLOCKS]; /* Pointers to blocks */
+                Byte i_generation = new Byte(0x0 + 44);     /* File version (for NFS) */
+                Byte i_file_acl = new Byte(0x0 + 48);                      /* File ACL */
+                Byte i_dir_acl = new Byte(0x0 + 52);                      /* Directory ACL */
+                Byte i_faddr = new Byte(0x0 + 56);                        /* Fragment address */
+                Byte l_i_frag = new Byte(0x0 + 60);            /* Fragment number */
+                Byte l_i_fsize = new Byte(0x0 + 61);           /* Fragment size */
+                Byte i_pad1 = new Byte(0x0 + 62);
+                Byte l_i_uid_high = new Byte(0x0 + 64);     /* these 2 fields    */
+                Byte l_i_gid_high = new Byte(0x0 + 66);     /* were reserved2[0] */
+                Byte l_i_reserved2 = new Byte(0x0 +  68);
             }
         }
 

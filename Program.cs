@@ -11,7 +11,7 @@
         //file_.getRoot().addFolder(new Img.Folder("YAKIDAN"));
         //file_.getRoot().addFolder(new Img.Folder("YAKIDALA"));
         //System.Console.WriteLine(file_.getRoot().getFolders().Count);
-        FileSystem.Fat12 fs = new FileSystem.Fat12("KIDALA");
+        FileSystem.Fat fs = new FileSystem.Fat("KIDALA");
         fs.readAbstract(img);
         fs.createImage();
         return 0;

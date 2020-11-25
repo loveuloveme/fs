@@ -4,7 +4,7 @@ using System.Text;
 using System.IO;
 
 namespace FileSystem{
-    class Fat12{
+    class Fat{
         class FatUnit{
             long offset;
 
@@ -320,9 +320,9 @@ namespace FileSystem{
                 new Byte(0x3, Encoding.ASCII.GetBytes("lolkek")),
                 new Byte(0xB, BitConverter.GetBytes((ushort)512)),
                 new Byte(0xD, new byte[] { (byte)32u }),
-                new Byte(0xE, BitConverter.GetBytes((ushort)1)),
+                new Byte(0xE, BitConverter.GetBytes((ushort)1)), //reserved
                 new Byte(0x10, new byte[] { (byte)2u }), 
-                new Byte(0x11, BitConverter.GetBytes((ushort)16)),
+                new Byte(0x11, BitConverter.GetBytes((ushort)16)), //root dir count
                 new Byte(0x13, BitConverter.GetBytes((ushort)2880)),
                 new Byte(0x15, new byte[] { 0xF0 }), 
                 new Byte(0x16, BitConverter.GetBytes((ushort)9)), 
@@ -348,7 +348,7 @@ namespace FileSystem{
 
         int freeClusterCount;
 
-        public Fat12(string diskName, int bytesPerCluster = 512, int sectorsPerCluster = 16384, int dirCount = 16, int sectorsPerFat = 9){
+        public Fat(string diskName){
             string sampleDiskName = "";
 
             for(int i = 0; i < 6; i++){
@@ -446,6 +446,10 @@ namespace FileSystem{
             if(!isReady) return;
 
             Stream file = new FileStream("test3.img", FileMode.Create, FileAccess.ReadWrite);
+            //System.Console.WriteLine(files.Count);
+            //boot.boot[6] = new Byte(0x11, BitConverter.GetBytes((ushort)files.Count + 1));
+            //16777216 - fat16 32768
+
             file.Seek((2880 * 512) - 1, SeekOrigin.Begin);
             file.WriteByte(0x00);
 

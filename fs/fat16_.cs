@@ -97,6 +97,14 @@ namespace FileSystem{
                 FatTable.Add(clustersId);
 
                 if(!item.Dir()){
+                    if(item.GetName().Length > 8){
+                        List<string> parts = parseLongName(item.GetName()+"."+item.GetExt());
+                        for(int i = parts.Count - 1; i >= 0; i--){
+                            files.Add(new LongFileName(offset, parts[i], item.GetExt(), clustersId, i + 1, i == parts.Count - 1));
+
+                            offset += bytesPerItem; 
+                        }
+                    }
                     files.Add(new File(offset, item.GetName(), item.GetExt(), clustersId, item.GetCreationTime(), item.GetWriteTime(), size));
                     offset += bytesPerItem;
                 }else{

@@ -1,8 +1,10 @@
 ﻿class Program{
     static int Main(){
         Image abstract12 = new Image();
-        abstract12.AddFile(new Image.File("./example.txt", "YAKIDAN", "avi"));
-        abstract12.AddFile(new Image.File("./example.txt", "heheunited", "zip"));
+        abstract12.AddFile(new Image.File("./example.txt", "YAKIDANYAKIDANYAKIDAN", "AVI"));
+        //abstract12.AddFile(new Image.File("./example.txt", "000heheunitedzip", "zip"));
+
+        abstract12.AddFile(new Image.File("./example.txt", "YAKIDANYAKIDANYAKIDAN", "ZIP"));
 
         FileSystem.Fat12 fat12Image = new FileSystem.Fat12("KIDALA");
         fat12Image.readAbstract(abstract12);
@@ -17,7 +19,7 @@
 
         Image abstract32 = new Image();
         abstract32.AddFile(new Image.File("./example.txt", "heheunited", "zip"));
-        abstract32.AddFile(new Image.File("./kek.zip", "mellerx", "zip"));
+        abstract32.AddFile(new Image.File("./kek.zip", "mellerxmellerxmellerxmellerx", "zip"));
 
         FileSystem.Fat32 fat32Image = new FileSystem.Fat32("lolkek");
         fat32Image.readAbstract(abstract32);

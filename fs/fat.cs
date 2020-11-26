@@ -19,7 +19,15 @@ namespace FileSystem{
             }
         }
 
-    class File{
+    class FatFile{
+        public virtual void Write(Stream fstream){
+            
+        }
+
+        public virtual void clearName(){}
+    }
+
+    class File : FatFile{
         Byte name;
         Byte attr;
         Byte createDate;
@@ -181,56 +189,6 @@ namespace FileSystem{
                 cluster = new Byte(0x1A, BitConverter.GetBytes(2));
             }
         }
-
-        class LongFileName{
-            Byte order;
-            Byte name;
-            Byte attr;
-            Byte type;
-            Byte sum;
-            Byte name2;
-            Byte firstCluster;
-            Byte name3;
-
-            long offset;
-
-            private string parseName(string name_, string ext){
-                for(int i = 0; i < 23; i++){
-                    if(i < name_.Length){
-                        name_ += " ";
-                    }
-                }
-
-                name_ += ext[0];
-                name_ += ext[1];
-                name_ += ext[2];
-
-                return name_;
-            }
-            public LongFileName(long fileOffset, string name_, string ext, List<int> clustersId, int size_ = 0, long attr_ = 0){
-                name_ = parseName(name_, ext);
-                offset = fileOffset;
-
-                order = new Byte(0x00, 0x40); 
-                name = new Byte(0x01, name_.Substring(0, 10));
-                attr = new Byte(0xB, 0x0f);
-                type = new Byte(0xC);
-                sum = new Byte(0xD);
-                name2 = new Byte(0xE, name_.Substring(10, 12));
-                firstCluster = new Byte(0xA + 16);
-                name3 = new Byte(0xC + 16, name_.Substring(22, 4));
-            }
-
-            public void Write(Stream fstream){
-                name.write(fstream, offset);
-                attr.write(fstream, offset);
-                type.write(fstream, offset);
-                sum.write(fstream, offset);
-                name2.write(fstream, offset);
-                firstCluster.write(fstream, offset);
-                name3.write(fstream, offset);;
-            }
-        }
         
         public File(long fileOffset, string name_){
             offset = fileOffset;
@@ -247,7 +205,15 @@ namespace FileSystem{
             size = new Byte(0x1C); 
         }
 
-        public void Write(Stream fstream){
+        public File(){
+        
+        }
+
+        public override void clearName(){
+            name = new Byte(0x0, "           ");
+        }
+
+        public override void Write(Stream fstream){
             name.write(fstream, offset);
             attr.write(fstream, offset);
             createDate.write(fstream, offset);
@@ -260,7 +226,63 @@ namespace FileSystem{
             size.write(fstream, offset);
         }
     }
+    
+    class LongFileName : FatFile{
+        Byte order;
+        Byte name;
+        Byte attr;
+        Byte type;
+        Byte sum;
+        Byte name2;
+        Byte firstCluster;
+        Byte name3;
 
+        long offset;
+
+        private string parseName(string name_, string ext){
+            for(int i = 0; i < 23; i++){
+                if(i < name_.Length){
+                    name_ += " ";
+                }
+            }
+
+            name_ += ext[0];
+            name_ += ext[1];
+            name_ += ext[2];
+
+            return name_;
+        }
+        
+        public LongFileName(long fileOffset, string name_, string ext, List<int> clustersId, int orderId, bool first = false, long attr_ = 0){
+            name_ = parseName(name_, ext);
+            offset = fileOffset;
+
+            if(first){
+                order = new Byte(0x00, BitConverter.GetBytes(0x40 + orderId));
+            }else{
+                order = new Byte(0x00, BitConverter.GetBytes(orderId));
+            }
+
+            name = new Byte(0x01, Encoding.Unicode.GetBytes(name_.Substring(0, 5)));
+            attr = new Byte(0xB, 0x0f);
+            type = new Byte(0xC);
+            sum = new Byte(0xD);
+            name2 = new Byte(0xE, Encoding.Unicode.GetBytes(name_.Substring(5, 6)));
+            firstCluster = new Byte(0xA + 16);
+            name3 = new Byte(0xC + 16, Encoding.Unicode.GetBytes(name_.Substring(11, 2)));
+        }
+
+        public override void Write(Stream fstream){
+            order.write(fstream, offset);
+            name.write(fstream, offset);
+            attr.write(fstream, offset);
+            type.write(fstream, offset);
+            sum.write(fstream, offset);
+            name2.write(fstream, offset);
+            firstCluster.write(fstream, offset);
+            name3.write(fstream, offset);;
+        }
+        }
     class Boot{
         public Byte[] boot;
 
@@ -306,7 +328,7 @@ namespace FileSystem{
     class Fat{
         protected Boot boot;
         protected File volume;
-        protected List<File> files = new List<File>();
+        protected List<FatFile> files = new List<FatFile>();
         protected List<Cluster> clusters = new List<Cluster>();
         protected FatUnit FatTable = new FatUnit();
 
@@ -328,6 +350,24 @@ namespace FileSystem{
             foreach(var item in clusters){
                 item.Write(file);
             }
+        }
+
+        protected List<string> parseLongName(string name){
+            List<string> parts = new List<string>();
+
+            for(int i = 0; i < name.Length; i++){
+                if(i % 13 == 0){
+                    parts.Add("");
+                }
+
+                parts[parts.Count - 1] += name[i];
+            }
+
+            for(int i = 0; i < parts.Count; i++){
+                while(parts[i].Length < 13) parts[i] += " ";
+            }
+
+            return parts;
         }
 
         protected string parseDiskName(string diskName){

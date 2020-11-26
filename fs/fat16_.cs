@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 
 namespace FileSystem{
-    class Fat12:Fat{        
+    class Fat16:Fat{        
         static class Config{
-            public static int sectorSize = 512;
+            public static int sectorSize = 2048;
             public static int sectorsPerCluster = 32;
-            public static int clusterCount = 2880;
+            public static int clusterCount = 65200;
             public static int sectorsPerFat = 9;
         }
 
@@ -17,9 +16,7 @@ namespace FileSystem{
                 fstream.Seek(offset, SeekOrigin.Begin);
                 fstream.Write(new byte[]{0xf0, 0xff, 0xff});
 
-                bool half = false;
                 bool isLast = false;
-                byte[] cluster_map_pair = new byte[3];
 
                 for(int i = 0; i < clusterMap.Count; i++){
                     List<int> clusters = clusterMap[i];
@@ -31,28 +28,16 @@ namespace FileSystem{
                             isLast = true;
                         }
 
-                        ushort value = (ushort)(isLast ? 0xff : clusters[j] + 1);
-
-                        if (!half){
-                            half = true;
-                            cluster_map_pair[0] = (byte)value;
-                            cluster_map_pair[1] = (byte)(value >> 8);
-                        }else{
-                            half = false;
-
-                            cluster_map_pair[2] = (byte)(value >> 4);
-                            value &= 0x00F;
-                            cluster_map_pair[1] ^= (byte)(value << 4);
-
-                            fstream.Write(cluster_map_pair);
-
-                            cluster_map_pair[2] = 0;
+                        ushort value = (ushort)(isLast ? 0x0FFF : clusters[j] + 1);
+                        
+                        var val = BitConverter.GetBytes(value);
+                        
+                        if(val.Length == 1){
+                            val = new System.Byte[2]{val[0], 0x0};
                         }
-                    }
-                }
 
-                if(half){
-                    fstream.Write(cluster_map_pair);
+                        fstream.Write(val);
+                    }
                 }
             }
         }
@@ -60,11 +45,11 @@ namespace FileSystem{
         private int bytesPerCluster = Config.sectorSize*Config.sectorsPerCluster;
 
         
-        public Fat12(string diskName){
+        public Fat16(string diskName){
             string sampleDiskName = parseDiskName(diskName);
 
             FatTable = new FatUnit12();
-            boot = new Boot(sampleDiskName, Config.sectorSize, Config.sectorSize/32, Config.clusterCount, Config.sectorsPerFat, "FAT12");
+            boot = new Boot(sampleDiskName, Config.sectorSize, Config.sectorSize/32, Config.clusterCount, Config.sectorsPerFat, "FAT16");
             volume = new File(Config.sectorSize*(Config.sectorsPerFat*2 + 1), sampleDiskName);
         }
 
